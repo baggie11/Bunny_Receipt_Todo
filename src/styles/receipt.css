@@ -1,0 +1,655 @@
+/* ===================================================
+   RECEIPT.CSS — Core layout, typography, receipt UI
+   =================================================== */
+
+/* ---- CSS Variables / Tints ---- */
+:root {
+  --paper-bg: #faf6ef;
+  --paper-edge: #ede7da;
+  --paper-text: #2c2825;
+  --paper-text-muted: #7a7067;
+  --paper-text-faint: #b5a995;
+  --paper-accent: #5c5248;
+  --paper-check: #4a6741;
+  --paper-border: #d4c9b8;
+  --paper-shadow: rgba(60, 50, 40, 0.18);
+  --paper-input-bg: #f5f0e8;
+  --paper-btn-bg: #ede7da;
+  --paper-btn-hover: #ddd6c6;
+  --paper-danger: #a0422a;
+  --paper-danger-hover: #c0522a;
+  --paper-header-bg: #f0ebe2;
+  --app-bg: #d6cfc4;
+  --window-radius: 12px;
+  --font-mono: 'Courier New', Courier, monospace;
+  --transition: 0.15s ease;
+}
+
+/* Warm tint */
+[data-tint="warm"] {
+  --paper-bg: #fdf4e3;
+  --paper-edge: #f0e0c0;
+  --paper-text: #3a2c1a;
+  --paper-text-muted: #8a7050;
+  --paper-text-faint: #c4a870;
+  --paper-border: #d8c090;
+  --paper-header-bg: #f5e8c8;
+  --app-bg: #c8b898;
+}
+
+/* Parchment tint */
+[data-tint="parchment"] {
+  --paper-bg: #f5f0e0;
+  --paper-edge: #e8dfc8;
+  --paper-text: #352e22;
+  --paper-text-muted: #7a7060;
+  --paper-text-faint: #b8ad90;
+  --paper-border: #cec4a8;
+  --paper-header-bg: #ece5d0;
+  --app-bg: #c0b898;
+}
+
+/* Midnight tint */
+[data-tint="midnight"] {
+  --paper-bg: #1e1c1a;
+  --paper-edge: #2e2b28;
+  --paper-text: #e8e0d4;
+  --paper-text-muted: #9a9088;
+  --paper-text-faint: #5a5248;
+  --paper-accent: #c8b898;
+  --paper-check: #7abf70;
+  --paper-border: #3a3530;
+  --paper-shadow: rgba(0, 0, 0, 0.5);
+  --paper-input-bg: #2a2724;
+  --paper-btn-bg: #2e2b28;
+  --paper-btn-hover: #3a3630;
+  --paper-header-bg: #252320;
+  --app-bg: #0e0d0c;
+}
+
+/* ---- Reset / Base ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--app-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- App Shell ---- */
+.app-shell {
+  width: 360px;
+  height: 560px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper-bg);
+  border-radius: var(--window-radius);
+  box-shadow:
+    0 4px 24px var(--paper-shadow),
+    0 1px 4px rgba(0,0,0,0.1),
+    inset 0 0 0 1px var(--paper-edge);
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+}
+
+/* Frameless window drag region */
+.app-titlebar {
+  -webkit-app-region: drag;
+  height: 32px;
+  background: var(--paper-header-bg);
+  border-bottom: 1px solid var(--paper-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  flex-shrink: 0;
+}
+
+.app-titlebar-title {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--paper-text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.app-titlebar-controls {
+  -webkit-app-region: no-drag;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.titlebar-btn {
+  -webkit-app-region: no-drag;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--paper-border);
+  border-radius: 4px;
+  background: var(--paper-btn-bg);
+  color: var(--paper-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition);
+  font-size: 11px;
+  padding: 0;
+}
+
+.titlebar-btn:hover {
+  background: var(--paper-btn-hover);
+  color: var(--paper-text);
+}
+
+.titlebar-btn.close-btn:hover {
+  background: var(--paper-danger);
+  color: #fff;
+  border-color: var(--paper-danger);
+}
+
+/* ---- Navigation Bar ---- */
+.app-nav {
+  display: flex;
+  border-bottom: 1px solid var(--paper-border);
+  background: var(--paper-header-bg);
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 7px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--paper-text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-transform: uppercase;
+}
+
+.nav-btn:hover {
+  color: var(--paper-text);
+  background: var(--paper-btn-hover);
+}
+
+.nav-btn.active {
+  color: var(--paper-text);
+  border-bottom-color: var(--paper-accent);
+  background: var(--paper-bg);
+  font-weight: bold;
+}
+
+/* ---- Receipt View ---- */
+.receipt-view {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-border) transparent;
+}
+
+.receipt-view::-webkit-scrollbar {
+  width: 4px;
+}
+.receipt-view::-webkit-scrollbar-thumb {
+  background: var(--paper-border);
+  border-radius: 2px;
+}
+
+/* ---- Receipt Header ---- */
+.receipt-header {
+  text-align: center;
+  padding: 4px 0 8px;
+}
+
+.receipt-store-name {
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 0.18em;
+  color: var(--paper-text);
+  text-transform: uppercase;
+}
+
+.receipt-tagline {
+  font-size: 9px;
+  color: var(--paper-text-muted);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+.receipt-date-line {
+  font-size: 9px;
+  color: var(--paper-text-muted);
+  margin-top: 3px;
+}
+
+.receipt-divider {
+  text-align: center;
+  font-size: 9px;
+  color: var(--paper-text-faint);
+  letter-spacing: 0.04em;
+  margin: 2px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.receipt-divider-double {
+  text-align: center;
+  font-size: 8.5px;
+  color: var(--paper-text-muted);
+  letter-spacing: 0.02em;
+  margin: 3px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ---- Receipt Sections ---- */
+.receipt-section {
+  margin: 2px 0;
+}
+
+.receipt-label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--paper-text-muted);
+  text-transform: uppercase;
+}
+
+.receipt-label-center {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--paper-text-muted);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.receipt-divider-line {
+  font-size: 8px;
+  color: var(--paper-text-faint);
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 2px 0;
+}
+
+.receipt-divider-dotted {
+  font-size: 8px;
+  color: var(--paper-text-faint);
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  margin: 2px 0;
+}
+
+/* ---- Progress ---- */
+.receipt-progress-empty {
+  padding: 4px 0;
+}
+
+.receipt-progress {
+  padding: 2px 0;
+}
+
+.receipt-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2px 0;
+}
+
+.receipt-counts {
+  font-size: 9px;
+  color: var(--paper-text-muted);
+}
+
+.receipt-block-bar {
+  font-size: 10px;
+  color: var(--paper-text);
+  letter-spacing: 0.01em;
+  margin: 3px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  font-family: var(--font-mono);
+}
+
+.receipt-hope-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--paper-text-muted);
+  margin: 1px 0;
+}
+
+.receipt-hope-label {
+  letter-spacing: 0.08em;
+}
+
+.receipt-hope-value {
+  font-weight: bold;
+  color: var(--paper-text);
+}
+
+.receipt-hope-tag {
+  font-size: 9px;
+  text-align: center;
+  color: var(--paper-text-muted);
+  letter-spacing: 0.08em;
+  margin: 2px 0;
+}
+
+/* Completion banner */
+.receipt-complete-banner {
+  padding: 4px 0;
+  text-align: center;
+}
+
+.receipt-complete-title {
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  color: var(--paper-text);
+  margin: 4px 0 2px;
+}
+
+.receipt-complete-sparkles {
+  font-size: 14px;
+  margin: 2px 0;
+  letter-spacing: 0.2em;
+}
+
+.receipt-complete-counter {
+  font-size: 9px;
+  color: var(--paper-text-muted);
+  letter-spacing: 0.1em;
+  margin: 2px 0;
+}
+
+/* ---- Task List ---- */
+.receipt-tasks-section {
+  padding: 2px 0;
+}
+
+.receipt-tasks-header {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--paper-text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.receipt-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* ---- Task Item ---- */
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 3px 2px;
+  border-radius: 3px;
+  transition: background var(--transition);
+  min-height: 24px;
+}
+
+.task-row:hover {
+  background: var(--paper-input-bg);
+}
+
+.task-row.task-completed .task-text {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.task-row.task-editing {
+  background: var(--paper-input-bg);
+}
+
+.task-checkbox-btn {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--paper-text-muted);
+  flex-shrink: 0;
+  height: 20px;
+  margin-top: 1px;
+  transition: color var(--transition);
+}
+
+.task-checkbox-btn:hover {
+  color: var(--paper-text);
+}
+
+.task-checkbox-btn.checked {
+  color: var(--paper-check);
+}
+
+.task-checkbox-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.bracket-left, .bracket-right {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.checkbox-icon {
+  width: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  cursor: default;
+}
+
+.task-text {
+  font-size: 11px;
+  color: var(--paper-text);
+  font-family: var(--font-mono);
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.task-time {
+  font-size: 8px;
+  color: var(--paper-text-faint);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.task-edit-input {
+  width: 100%;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--paper-text);
+  background: var(--paper-input-bg);
+  border: 1px solid var(--paper-accent);
+  border-radius: 3px;
+  padding: 1px 4px;
+  outline: none;
+}
+
+.task-actions {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+}
+
+.task-row:hover .task-actions {
+  opacity: 1;
+}
+
+.task-action-btn {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--paper-text-faint);
+  padding: 0;
+  transition: all var(--transition);
+}
+
+.task-action-btn:hover {
+  border-color: var(--paper-border);
+  background: var(--paper-btn-bg);
+  color: var(--paper-text);
+}
+
+.task-action-btn.delete-btn:hover {
+  border-color: var(--paper-danger);
+  color: var(--paper-danger);
+  background: transparent;
+}
+
+/* ---- Task Input ---- */
+.receipt-task-input-container {
+  margin: 4px 0 2px;
+  border: 1px solid var(--paper-border);
+  border-radius: 4px;
+  background: var(--paper-input-bg);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.receipt-task-input-container.focused {
+  border-color: var(--paper-accent);
+  box-shadow: 0 0 0 2px rgba(92, 82, 72, 0.12);
+}
+
+.receipt-task-input-form {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.task-input-prefix {
+  color: var(--paper-text-faint);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.receipt-input-field {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--paper-text);
+  padding: 0;
+}
+
+.receipt-input-field::placeholder {
+  color: var(--paper-text-faint);
+  font-style: italic;
+}
+
+.receipt-submit-btn {
+  background: none;
+  border: 1px solid var(--paper-border);
+  border-radius: 3px;
+  color: var(--paper-text-muted);
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.receipt-submit-btn:hover {
+  background: var(--paper-btn-bg);
+  color: var(--paper-text);
+}
+
+/* ---- Receipt Footer ---- */
+.receipt-footer {
+  text-align: center;
+  padding: 6px 0 2px;
+  border-top: 1px dashed var(--paper-border);
+  margin-top: 4px;
+}
+
+.receipt-footer-text {
+  font-size: 8px;
+  color: var(--paper-text-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ---- Scrollbar ---- */
+.receipt-view::-webkit-scrollbar {
+  width: 4px;
+}
+.receipt-view::-webkit-scrollbar-track {
+  background: transparent;
+}
+.receipt-view::-webkit-scrollbar-thumb {
+  background: var(--paper-border);
+  border-radius: 2px;
+}

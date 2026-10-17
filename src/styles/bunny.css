@@ -1,0 +1,118 @@
+/* ===================================================
+   BUNNY.CSS — Bunny mascot, animations, speech bubble
+   =================================================== */
+
+.bunny-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 0 2px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.bunny-svg-wrapper {
+  width: 90px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.bunny-container:active .bunny-svg-wrapper {
+  transform: scale(0.93);
+}
+
+.bunny-svg {
+  width: 90px;
+  height: 72px;
+  overflow: visible;
+}
+
+/* ---- Bounce animation ---- */
+.bunny-bounce .bunny-svg-wrapper {
+  animation: bunnyBounce 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes bunnyBounce {
+  0%   { transform: translateY(0); }
+  20%  { transform: translateY(-10px); }
+  40%  { transform: translateY(-5px); }
+  60%  { transform: translateY(-8px); }
+  80%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+
+/* ---- Celebration animation ---- */
+.bunny-celebrating .bunny-svg-wrapper {
+  animation: bunnyCelebrate 0.8s ease infinite alternate;
+}
+
+@keyframes bunnyCelebrate {
+  0%   { transform: translateY(0) rotate(-3deg) scale(1); }
+  50%  { transform: translateY(-6px) rotate(3deg) scale(1.04); }
+  100% { transform: translateY(0) rotate(-2deg) scale(1.01); }
+}
+
+/* ---- Speech bubble ---- */
+.bunny-speech-bubble {
+  background: var(--paper-input-bg);
+  border: 1px solid var(--paper-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-top: 4px;
+  max-width: 280px;
+  text-align: center;
+  position: relative;
+}
+
+/* Triangle pointer up toward the bunny */
+.bunny-speech-bubble::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 6px 7px 6px;
+  border-style: solid;
+  border-color: transparent transparent var(--paper-border) transparent;
+}
+
+.bunny-speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 5px 6px 5px;
+  border-style: solid;
+  border-color: transparent transparent var(--paper-input-bg) transparent;
+}
+
+.bunny-quote-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--paper-text);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  font-style: italic;
+}
+
+.bunny-subtext {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  color: var(--paper-text-muted);
+  margin-top: 3px;
+  letter-spacing: 0.05em;
+}
+
+/* ---- Subtle shake on poke ---- */
+@keyframes bunnyShake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-4px) rotate(-2deg); }
+  40%       { transform: translateX(4px) rotate(2deg); }
+  60%       { transform: translateX(-3px) rotate(-1deg); }
+  80%       { transform: translateX(3px) rotate(1deg); }
+}
