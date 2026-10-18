@@ -64,6 +64,15 @@ export function isEarlyCompletion(): boolean {
   return now.getHours() < 12; // Completed before noon
 }
 
+export function getYesterdayDateString(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function isBirthdayToday(userBirthday?: string): boolean {
   if (!userBirthday) return false;
   const now = new Date();

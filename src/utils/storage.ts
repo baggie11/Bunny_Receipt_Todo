@@ -25,6 +25,8 @@ export interface AppSettings {
   userBirthday: string; // "MM-DD" e.g. "10-03"
   hasSeenOnboarding: boolean;
   paperTint: 'classic' | 'warm' | 'parchment' | 'midnight';
+  bunnyWalkEnabled: boolean;
+  bunnyWalkInterval: number; // seconds before the bunny checks on you
 }
 
 const STORAGE_KEYS = {
@@ -45,6 +47,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   userBirthday: "",
   hasSeenOnboarding: false,
   paperTint: 'classic',
+  bunnyWalkEnabled: true,
+  bunnyWalkInterval: 30, // 30 seconds default
 };
 
 export function loadSettings(): AppSettings {
@@ -79,6 +83,14 @@ export function loadStoredTasks(date: string): Task[] {
     console.error("Failed to load tasks", e);
   }
   return [];
+}
+
+export function getStoredDate(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.CURRENT_DATE);
+  } catch {
+    return null;
+  }
 }
 
 export function saveStoredTasks(date: string, tasks: Task[]): void {

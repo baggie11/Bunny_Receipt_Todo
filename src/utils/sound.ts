@@ -16,6 +16,18 @@ function getAudioContext(): AudioContext | null {
   return audioCtx;
 }
 
+// Pre-warm the AudioContext on module load so the first sound has no delay.
+// Browsers require a user gesture before audio can play, but Tauri's webview
+// doesn't enforce that restriction, so this is safe here.
+if (typeof window !== 'undefined') {
+  const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  if (AudioContextClass) {
+    try {
+      audioCtx = new AudioContextClass();
+    } catch (_) { /* ignore */ }
+  }
+}
+
 export function playCheckSound(enabled: boolean = true) {
   if (!enabled) return;
   try {
@@ -121,6 +133,108 @@ export function playCelebrationSound(enabled: boolean = true) {
       osc.start(startTime);
       osc.stop(startTime + 0.45);
     });
+  } catch (e) {
+    console.warn("Audio play error", e);
+  }
+}
+
+export function playPrinterSound(enabled: boolean = true) {
+  if (!enabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const duration = 1.3;
+
+    // ---- Paper feed motor: fast sawtooth bursts ----
+    // Real thermal printers make a rapid "zzzzip" — sawtooth into a bandpass
+    // gives that characteristic mechanical buzz
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const nd = noiseBuffer.getChannelData(0);
+    // Sawtooth-ish noise: deterministic ramp per ~2ms cycle for the buzz texture
+    const cycleSamples = Math.floor(ctx.sampleRate * 0.0022);
+    for (let i = 0; i < bufferSize; i++) {
+      nd[i] = ((i % cycleSamples) / cycleSamples) * 2 - 1;
+    }
+    const motorSrc = ctx.createBufferSource();
+    motorSrc.buffer = noiseBuffer;
+
+    // Bandpass centered on the "paper zipping" frequency range
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 3200;
+    bp.Q.value = 1.8;
+
+    const motorGain = ctx.createGain();
+    // Quick attack, hold, quick tail-off
+    motorGain.gain.setValueAtTime(0, now);
+    motorGain.gain.linearRampToValueAtTime(0.28, now + 0.04);
+    motorGain.gain.setValueAtTime(0.28, now + duration - 0.18);
+    motorGain.gain.linearRampToValueAtTime(0, now + duration);
+
+    motorSrc.connect(bp);
+    bp.connect(motorGain);
+    motorGain.connect(ctx.destination);
+    motorSrc.start(now);
+    motorSrc.stop(now + duration);
+
+    // ---- Paper friction layer: high-passed white noise ----
+    // Adds the "ssshhhh" of paper surface moving under the head
+    const frictionSize = Math.floor(ctx.sampleRate * duration);
+    const frictionBuffer = ctx.createBuffer(1, frictionSize, ctx.sampleRate);
+    const fd = frictionBuffer.getChannelData(0);
+    for (let i = 0; i < frictionSize; i++) fd[i] = Math.random() * 2 - 1;
+
+    const frictionSrc = ctx.createBufferSource();
+    frictionSrc.buffer = frictionBuffer;
+
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 5000;
+    hp.Q.value = 0.5;
+
+    const frictionGain = ctx.createGain();
+    frictionGain.gain.setValueAtTime(0, now);
+    frictionGain.gain.linearRampToValueAtTime(0.08, now + 0.04);
+    frictionGain.gain.setValueAtTime(0.08, now + duration - 0.18);
+    frictionGain.gain.linearRampToValueAtTime(0, now + duration);
+
+    frictionSrc.connect(hp);
+    hp.connect(frictionGain);
+    frictionGain.connect(ctx.destination);
+    frictionSrc.start(now);
+    frictionSrc.stop(now + duration);
+
+    // ---- Stepper motor sub-ticks: the chunky mechanical rhythm ----
+    // 18 evenly spaced low thumps — the stepping sound of the feed roller
+    const tickCount = 18;
+    for (let i = 0; i < tickCount; i++) {
+      const t = now + 0.03 + (i / tickCount) * (duration - 0.1);
+      const tickOsc = ctx.createOscillator();
+      const tickGain = ctx.createGain();
+      tickOsc.type = 'sawtooth';
+      tickOsc.frequency.setValueAtTime(180 + (i % 3) * 12, t);
+      tickGain.gain.setValueAtTime(0.06, t);
+      tickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.022);
+      tickOsc.connect(tickGain);
+      tickGain.connect(ctx.destination);
+      tickOsc.start(t);
+      tickOsc.stop(t + 0.025);
+    }
+
+    // ---- End clunk: printer head parks ----
+    const clunkOsc = ctx.createOscillator();
+    const clunkGain = ctx.createGain();
+    clunkOsc.type = 'sine';
+    clunkOsc.frequency.setValueAtTime(110, now + duration);
+    clunkOsc.frequency.exponentialRampToValueAtTime(55, now + duration + 0.07);
+    clunkGain.gain.setValueAtTime(0.12, now + duration);
+    clunkGain.gain.exponentialRampToValueAtTime(0.001, now + duration + 0.09);
+    clunkOsc.connect(clunkGain);
+    clunkGain.connect(ctx.destination);
+    clunkOsc.start(now + duration);
+    clunkOsc.stop(now + duration + 0.1);
   } catch (e) {
     console.warn("Audio play error", e);
   }

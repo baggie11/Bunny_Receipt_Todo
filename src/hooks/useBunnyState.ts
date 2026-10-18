@@ -10,6 +10,7 @@ interface UseBunnyStateProps {
   history: Record<string, DailyReceiptRecord>;
   userBirthday?: string;
   soundEnabled?: boolean;
+  leftoverCount?: number;
 }
 
 export function useBunnyState({
@@ -17,6 +18,7 @@ export function useBunnyState({
   history,
   userBirthday,
   soundEnabled = true,
+  leftoverCount = 0,
 }: UseBunnyStateProps) {
   const [isBlinking, setIsBlinking] = useState(false);
   const [isEarWiggling, setIsEarWiggling] = useState(false);
@@ -35,6 +37,7 @@ export function useBunnyState({
       isBirthday,
       isEarly,
       hasRepeatedTasks: hasRepeated,
+      leftoverCount,
     });
   }, [completed, total, isBirthday, isEarly, hasRepeated]);
 

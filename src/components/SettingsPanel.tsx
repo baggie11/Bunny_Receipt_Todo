@@ -161,6 +161,54 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onUpdate
           </div>
         </div>
 
+        {/* Bunny Companion */}
+        {inTauri && (
+          <div className="settings-section">
+            <div className="settings-section-title">Bunny Companion</div>
+
+            <div className="settings-row">
+              <div className="settings-row-label">
+                <span className="settings-label-main">Bunny Check-in</span>
+                <span className="settings-label-sub">Walk in to check on you</span>
+              </div>
+              <label className="settings-toggle" aria-label="Bunny check-in">
+                <input
+                  type="checkbox"
+                  checked={settings.bunnyWalkEnabled}
+                  onChange={e => handleToggle('bunnyWalkEnabled', e.target.checked)}
+                />
+                <span className="toggle-track" />
+              </label>
+            </div>
+
+            {settings.bunnyWalkEnabled && (
+              <div className="settings-row">
+                <div className="settings-row-label">
+                  <span className="settings-label-main">Check-in Interval</span>
+                  <span className="settings-label-sub">Time before bunny visits</span>
+                </div>
+                <select
+                  className="settings-text-input settings-select"
+                  value={settings.bunnyWalkInterval}
+                  onChange={e => {
+                    onUpdate({ bunnyWalkInterval: Number(e.target.value) });
+                    flash();
+                  }}
+                  aria-label="Check-in interval"
+                >
+                  <option value={10}>10 seconds</option>
+                  <option value={30}>30 seconds</option>
+                  <option value={60}>1 minute</option>
+                  <option value={300}>5 minutes</option>
+                  <option value={600}>10 minutes</option>
+                  <option value={1800}>30 minutes</option>
+                  <option value={3600}>1 hour</option>
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* System (Tauri-only) */}
         {inTauri && (
           <div className="settings-section">

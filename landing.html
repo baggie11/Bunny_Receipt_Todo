@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bunny Receipt — A daily task ledger</title>
+<style>
+  :root {
+    --paper-bg: #faf6ef;
+    --paper-edge: #ede7da;
+    --paper-text: #2c2825;
+    --paper-text-muted: #7a7067;
+    --paper-text-faint: #b5a995;
+    --paper-accent: #5c5248;
+    --paper-border: #d4c9b8;
+    --paper-shadow: rgba(60, 50, 40, 0.18);
+    --paper-input-bg: #f5f0e8;
+    --font-mono: 'Courier New', Courier, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #d6cfc4;
+    font-family: var(--font-mono);
+    color: var(--paper-text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .receipt {
+    width: 100%;
+    max-width: 440px;
+    background: var(--paper-bg);
+    border-radius: 12px;
+    box-shadow:
+      0 4px 24px var(--paper-shadow),
+      0 1px 4px rgba(0,0,0,0.1),
+      inset 0 0 0 1px var(--paper-edge);
+    overflow: hidden;
+  }
+
+  .receipt-inner {
+    padding: 40px 32px 32px;
+  }
+
+  /* ---- Header ---- */
+  .header { text-align: center; margin-bottom: 8px; }
+
+  .header-bunny {
+    width: 72px;
+    height: 64px;
+    margin: 0 auto 12px;
+    display: block;
+  }
+
+  .store-name {
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--paper-text);
+  }
+
+  .tagline {
+    font-size: 11px;
+    color: var(--paper-text-muted);
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }
+
+  .divider-heavy {
+    text-align: center;
+    font-size: 10px;
+    color: var(--paper-text-faint);
+    letter-spacing: 0.04em;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 16px 0 12px;
+  }
+
+  .divider-dash {
+    text-align: center;
+    font-size: 10px;
+    color: var(--paper-text-faint);
+    letter-spacing: 0.04em;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 10px 0;
+  }
+
+  /* ---- Description ---- */
+  .description {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--paper-text);
+    text-align: center;
+    margin: 8px 0;
+  }
+
+  .description strong { font-weight: bold; }
+
+  /* ---- Features ---- */
+  .features-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--paper-text-muted);
+    text-align: center;
+    margin: 4px 0 8px;
+  }
+
+  .feature-list {
+    list-style: none;
+    margin: 4px 0;
+  }
+
+  .feature-item {
+    font-size: 12px;
+    color: var(--paper-text);
+    line-height: 1.8;
+    padding: 2px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .feature-mark {
+    color: var(--paper-text-faint);
+    flex-shrink: 0;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  /* ---- Download section ---- */
+  .download-section {
+    margin: 20px 0 8px;
+    text-align: center;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 36px;
+    background: var(--paper-accent);
+    color: var(--paper-bg);
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.1s ease;
+  }
+
+  .download-btn:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+  }
+
+  .download-btn:active {
+    transform: translateY(0);
+  }
+
+  .download-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .download-info {
+    font-size: 10px;
+    color: var(--paper-text-faint);
+    letter-spacing: 0.06em;
+    margin-top: 10px;
+  }
+
+  /* ---- Footer ---- */
+  .footer {
+    text-align: center;
+    border-top: 1px dashed var(--paper-border);
+    margin-top: 20px;
+    padding-top: 14px;
+  }
+
+  .footer-text {
+    font-size: 10px;
+    color: var(--paper-text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .footer-sub {
+    font-size: 9px;
+    color: var(--paper-text-faint);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- Bunny ASCII art for footer ---- */
+  .footer-art {
+    font-size: 9px;
+    color: var(--paper-text-faint);
+    line-height: 1.2;
+    margin-top: 8px;
+    white-space: pre;
+  }
+
+  /* ---- System requirements ---- */
+  .sys-req {
+    text-align: center;
+    font-size: 9px;
+    color: var(--paper-text-faint);
+    letter-spacing: 0.06em;
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="receipt">
+  <div class="receipt-inner">
+
+    <!-- Header -->
+    <div class="header">
+      <!-- Bunny SVG -->
+      <svg class="header-bunny" viewBox="0 0 100 88" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ears -->
+        <g>
+          <path d="M 38 38 C 32 18 35 6 42 8 C 48 10 46 22 44 38 Z"
+            fill="#ffffff" stroke="#262320" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M 40 32 C 37 22 38 14 41 14"
+            fill="none" stroke="#f7b5b5" stroke-width="2" stroke-linecap="round"/>
+          <path d="M 58 38 C 56 22 54 10 60 8 C 68 6 70 18 62 38 Z"
+            fill="#ffffff" stroke="#262320" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M 61 14 C 64 14 64 22 61 32"
+            fill="none" stroke="#f7b5b5" stroke-width="2" stroke-linecap="round"/>
+        </g>
+        <!-- Head -->
+        <path d="M 32 40 C 26 50 26 62 34 68 C 40 73 60 73 66 68 C 74 62 74 50 68 40 C 62 33 38 33 32 40 Z"
+          fill="#ffffff" stroke="#262320" stroke-width="2.5" stroke-linejoin="round"/>
+        <!-- Cheeks -->
+        <ellipse cx="36" cy="58" rx="3" ry="2" fill="#ffb3ba" opacity="0.6"/>
+        <ellipse cx="64" cy="58" rx="3" ry="2" fill="#ffb3ba" opacity="0.6"/>
+        <!-- Eyes -->
+        <ellipse cx="42" cy="53" rx="3" ry="3.5" fill="#262320"/>
+        <circle cx="41" cy="51.5" r="1.2" fill="#ffffff"/>
+        <ellipse cx="58" cy="53" rx="3" ry="3.5" fill="#262320"/>
+        <circle cx="57" cy="51.5" r="1.2" fill="#ffffff"/>
+        <!-- Nose -->
+        <polygon points="48,60 50,58 52,60 50,62" fill="#f4a261"/>
+        <!-- Mouth -->
+        <path d="M 47 62 Q 50 65 53 62" fill="none" stroke="#262320" stroke-width="1.8" stroke-linecap="round"/>
+        <!-- Whiskers -->
+        <line x1="30" y1="61" x2="22" y2="59" stroke="#262320" stroke-width="1" stroke-linecap="round"/>
+        <line x1="30" y1="64" x2="22" y2="66" stroke="#262320" stroke-width="1" stroke-linecap="round"/>
+        <line x1="70" y1="61" x2="78" y2="59" stroke="#262320" stroke-width="1" stroke-linecap="round"/>
+        <line x1="70" y1="64" x2="78" y2="66" stroke="#262320" stroke-width="1" stroke-linecap="round"/>
+        <!-- Paws -->
+        <ellipse cx="42" cy="76" rx="5" ry="3" fill="#ffffff" stroke="#262320" stroke-width="2"/>
+        <ellipse cx="58" cy="76" rx="5" ry="3" fill="#ffffff" stroke="#262320" stroke-width="2"/>
+      </svg>
+
+      <div class="store-name">Bunny Receipt</div>
+      <div class="tagline">daily task ledger</div>
+    </div>
+
+    <div class="divider-heavy">================================</div>
+
+    <!-- Description -->
+    <div class="description">
+      A tiny desktop companion that keeps a <strong>receipt of your day</strong>.
+      Add tasks, check them off, and let your bunny cheer you on.
+    </div>
+
+    <div class="divider-dash">- - - - - - - - - - - - - - - -</div>
+
+    <!-- Features -->
+    <div class="features-label">What's on the receipt</div>
+    <ul class="feature-list">
+      <li class="feature-item">
+        <span class="feature-mark">[x]</span>
+        <span>Daily task list with receipt-style UI</span>
+      </li>
+      <li class="feature-item">
+        <span class="feature-mark">[x]</span>
+        <span>Animated bunny mascot that reacts to your progress</span>
+      </li>
+      <li class="feature-item">
+        <span class="feature-mark">[x]</span>
+        <span>Bunny walks onto your desktop to check on you</span>
+      </li>
+      <li class="feature-item">
+        <span class="feature-mark">[x]</span>
+        <span>Carry over yesterday's unfinished tasks</span>
+      </li>
+      <li class="feature-item">
+        <span class="feature-mark">[x]</span>
+        <span>System tray, always-on-top, and morning reminders</span>
+      </li>
+      <li class="feature-item">
+        <span class="feature-mark">[x]</span>
+        <span>Four paper tints, sound effects, and confetti</span>
+      </li>
+      <li class="feature-item">
+        <span class="feature-mark">[x]</span>
+        <span>7-day history of your daily receipts</span>
+      </li>
+      <li class="feature-item">
+        <span class="feature-mark">[x]</span>
+        <span>Print animation with sound on every launch</span>
+      </li>
+    </ul>
+
+    <div class="divider-dash">- - - - - - - - - - - - - - - -</div>
+
+    <!-- Download -->
+    <div class="download-section">
+      <a class="download-btn" href="https://github.com/baggie11/Bunny_Receipt_Todo/releases/download/to-do/Bunny.Receipt_1.0.0_x64-setup.exe" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download for Windows
+      </a>
+      <div class="download-info">v1.0.0 &middot; ~15 MB &middot; .exe installer</div>
+    </div>
+
+    <!-- System requirements -->
+    <div class="sys-req">Windows 10 or later &middot; No installation dependencies</div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-text">Thank you &middot; Come again</div>
+      <div class="footer-sub">keep going, one task at a time</div>
+      <div class="footer-art">   (\(&
+   ( -.-)
+   o_(")(")</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

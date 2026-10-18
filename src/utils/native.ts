@@ -111,3 +111,33 @@ export async function closeOrMinimize(minimizeToTray: boolean): Promise<void> {
     }
   }
 }
+
+export async function showBunnyWalk(): Promise<void> {
+  if (isTauri()) {
+    try {
+      await invoke('show_bunny_walk');
+    } catch (e) {
+      console.warn("show_bunny_walk error", e);
+    }
+  }
+}
+
+export async function hideBunnyWalk(): Promise<void> {
+  if (isTauri()) {
+    try {
+      await invoke('hide_bunny_walk');
+    } catch (e) {
+      console.warn("hide_bunny_walk error", e);
+    }
+  }
+}
+
+export async function showMainWindow(): Promise<void> {
+  if (isTauri()) {
+    try {
+      await invoke('show_window');
+    } catch (e) {
+      console.warn("show_window error", e);
+    }
+  }
+}

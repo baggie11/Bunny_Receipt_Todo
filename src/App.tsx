@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Minus, X } from 'lucide-react';
 
 import { Bunny } from './components/Bunny';
@@ -14,13 +14,25 @@ import { useBunnyState } from './hooks/useBunnyState';
 import { useTasks } from './hooks/useTasks';
 
 import { formatDayHeader } from './utils/dates';
-import { closeOrMinimize, minimizeWindow, isTauri } from './utils/native';
+import { closeOrMinimize, minimizeWindow, isTauri, showBunnyWalk, hideBunnyWalk } from './utils/native';
 import { AppSettings } from './utils/storage';
+import { playPrinterSound } from './utils/sound';
 
 type NavTab = 'receipt' | 'history' | 'settings';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('receipt');
+  // Start false — we kick the animation on the first rAF after sound starts
+  const [isPrinting, setIsPrinting] = useState(false);
+  const shellRef = useRef<HTMLDivElement>(null);
+
+  // --- Bunny walk-in inactivity tracking ---
+  // Interval is user-configurable via Settings. Cooldown prevents spam.
+  const BUNNY_COOLDOWN = 10000; // minimum gap between bunny walks (fixed)
+
+  const lastInteraction = useRef(Date.now());
+  const lastBunnyWalk = useRef(0);
+  const bunnyShowing = useRef(false);
 
   const {
     currentDate,
@@ -29,6 +41,9 @@ export default function App() {
     history,
     settings,
     updateSettings,
+    leftoverTasks,
+    carryOverLeftovers,
+    dismissLeftovers,
   } = useDailyReceipt();
 
   // Show onboarding on first run
@@ -43,6 +58,7 @@ export default function App() {
     history,
     userBirthday: settings.userBirthday,
     soundEnabled: settings.soundEffects,
+    leftoverCount: leftoverTasks.length,
   });
 
   const { addTask, toggleTask, deleteTask, editTask } = useTasks({
@@ -71,10 +87,100 @@ export default function App() {
     return () => { unlisten?.(); };
   }, []);
 
+  // Printer animation on launch — useLayoutEffect runs synchronously before
+  // the browser paints, so the sound starts before any frame is drawn.
+  // We then kick the CSS animation on the very next rAF so audio and visual
+  // are locked together with no perceptible gap.
+  useLayoutEffect(() => {
+    playPrinterSound(settings.soundEffects);
+    const raf = requestAnimationFrame(() => {
+      setIsPrinting(true);
+    });
+    const timer = setTimeout(() => setIsPrinting(false), 1500);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reprint when window is restored from hidden (tray/minimized).
+  // visibilitychange fires on genuine hide→show transitions, NOT on window drag.
+  useEffect(() => {
+    let wasHidden = false;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        wasHidden = true;
+      } else if (document.visibilityState === 'visible' && wasHidden) {
+        wasHidden = false;
+        playPrinterSound(settings.soundEffects);
+        requestAnimationFrame(() => {
+          setIsPrinting(true);
+          setTimeout(() => setIsPrinting(false), 1500);
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [settings.soundEffects]);
+
   // Apply paper tint to root element
   useEffect(() => {
     document.documentElement.setAttribute('data-tint', settings.paperTint);
   }, [settings.paperTint]);
+
+  // --- Inactivity: reset timer on actual user interaction ---
+  useEffect(() => {
+    const resetInteraction = () => {
+      if (bunnyShowing.current) {
+        // User came back — dismiss the bunny
+        hideBunnyWalk();
+        bunnyShowing.current = false;
+      }
+      lastInteraction.current = Date.now();
+    };
+
+    const events: Array<keyof WindowEventMap> = [
+      'mousedown', 'keydown', 'click', 'touchstart', 'wheel',
+    ];
+    events.forEach(e => window.addEventListener(e, resetInteraction, { passive: true }));
+
+    return () => {
+      events.forEach(e => window.removeEventListener(e, resetInteraction));
+    };
+  }, []);
+
+  // --- Poll for inactivity and trigger the bunny walk ---
+  useEffect(() => {
+    if (!isTauri()) return; // only works in Tauri (needs the separate window)
+    if (!settings.bunnyWalkEnabled) return;
+
+    const idleThresholdMs = settings.bunnyWalkInterval * 1000;
+
+    const checkIdle = setInterval(() => {
+      const now = Date.now();
+      const idleTime = now - lastInteraction.current;
+      const cooldownTime = now - lastBunnyWalk.current;
+
+      if (
+        idleTime > idleThresholdMs &&
+        !bunnyShowing.current &&
+        cooldownTime > BUNNY_COOLDOWN
+      ) {
+        bunnyShowing.current = true;
+        lastBunnyWalk.current = now;
+        showBunnyWalk();
+        // The bunny walks out after ~6s — reset the flag after that
+        setTimeout(() => {
+          bunnyShowing.current = false;
+        }, 7000);
+      }
+    }, 500);
+
+    return () => clearInterval(checkIdle);
+  }, [settings.bunnyWalkEnabled, settings.bunnyWalkInterval]);
 
   const header = formatDayHeader(currentDate);
 
@@ -82,7 +188,7 @@ export default function App() {
   const handleClose = () => closeOrMinimize(settings.minimizeToTray);
 
   return (
-    <div className="app-shell">
+    <div ref={shellRef} className={`app-shell${isPrinting ? ' printing' : ''}`}>
       {/* Onboarding overlay — shown on first launch */}
       {showOnboarding && (
         <Onboarding onComplete={handleOnboardingComplete} />
@@ -121,7 +227,7 @@ export default function App() {
             className={`nav-btn ${activeTab === tab ? 'active' : ''}`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === 'receipt' ? '📋 Today' : tab === 'history' ? '📜 History' : '⚙ Settings'}
+            {tab === 'receipt' ? 'Today' : tab === 'history' ? 'History' : 'Settings'}
           </button>
         ))}
       </nav>
@@ -147,6 +253,34 @@ export default function App() {
           </div>
 
           <div className="receipt-divider">- - - - - - - - - - - - - - - -</div>
+
+          {/* Leftover tasks from yesterday */}
+          {leftoverTasks.length > 0 && (
+            <div className="leftover-banner">
+              <div className="leftover-banner-header">
+                <span className="leftover-banner-title">Yesterday's Unfinished</span>
+                <span className="leftover-banner-count">
+                  {leftoverTasks.length} task{leftoverTasks.length !== 1 ? 's' : ''} left over
+                </span>
+              </div>
+              <div className="leftover-banner-tasks">
+                {leftoverTasks.map(task => (
+                  <div key={task.id} className="leftover-task-row">
+                    <span className="leftover-task-dot">[ ]</span>
+                    <span className="leftover-task-text">{task.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="leftover-banner-actions">
+                <button className="leftover-carry-btn" onClick={carryOverLeftovers}>
+                  Carry Over
+                </button>
+                <button className="leftover-dismiss-btn" onClick={dismissLeftovers}>
+                  Start Fresh
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Bunny mascot */}
           <Bunny

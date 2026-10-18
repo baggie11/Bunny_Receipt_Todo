@@ -114,6 +114,46 @@ body {
   user-select: none;
 }
 
+/* Printer feed-out animation */
+.app-shell.printing {
+  animation: printerFeed 1.3s cubic-bezier(0.23, 1, 0.32, 1) both;
+  transform-origin: top center;
+}
+
+@keyframes printerFeed {
+  0% {
+    /* Start: only the top sliver is visible, clipped from below */
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-8px);
+  }
+  6% {
+    /* Tiny jolt — printer grabs the paper */
+    clip-path: inset(0 0 97% 0);
+    transform: translateY(-6px);
+  }
+  12% {
+    clip-path: inset(0 0 92% 0);
+    transform: translateY(-4px);
+  }
+  /* Steady feed — paper rolls out smoothly */
+  85% {
+    clip-path: inset(0 0 2% 0);
+    transform: translateY(0px);
+  }
+  /* Slight overshoot then settle */
+  92% {
+    clip-path: inset(0 0 0% 0);
+    transform: translateY(3px);
+  }
+  97% {
+    transform: translateY(-1px);
+  }
+  100% {
+    clip-path: inset(0 0 0% 0);
+    transform: translateY(0px);
+  }
+}
+
 /* Frameless window drag region */
 .app-titlebar {
   -webkit-app-region: drag;
@@ -633,6 +673,108 @@ body {
   padding: 6px 0 2px;
   border-top: 1px dashed var(--paper-border);
   margin-top: 4px;
+}
+
+/* ---- Leftover Banner (morning after) ---- */
+.leftover-banner {
+  margin: 4px 0 6px;
+  padding: 8px 10px;
+  background: var(--paper-input-bg);
+  border: 1px solid var(--paper-border);
+  border-left: 3px solid var(--paper-accent);
+  border-radius: 6px;
+}
+
+.leftover-banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.leftover-banner-title {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-text-muted);
+  font-weight: bold;
+}
+
+.leftover-banner-count {
+  font-size: 8.5px;
+  color: var(--paper-text-faint);
+  letter-spacing: 0.04em;
+}
+
+.leftover-banner-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.leftover-task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 1px 0;
+}
+
+.leftover-task-dot {
+  font-size: 10px;
+  color: var(--paper-text-faint);
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.leftover-task-text {
+  font-size: 10px;
+  color: var(--paper-text);
+  line-height: 1.4;
+}
+
+.leftover-banner-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.leftover-carry-btn {
+  flex: 1;
+  padding: 5px 0;
+  background: var(--paper-accent);
+  color: var(--paper-bg);
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.leftover-carry-btn:hover {
+  filter: brightness(1.15);
+}
+
+.leftover-dismiss-btn {
+  flex: 1;
+  padding: 5px 0;
+  background: transparent;
+  color: var(--paper-text-muted);
+  border: 1px solid var(--paper-border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.leftover-dismiss-btn:hover {
+  background: var(--paper-btn-hover);
+  color: var(--paper-text);
 }
 
 .receipt-footer-text {

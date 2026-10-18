@@ -1,0 +1,167 @@
+/* ===================================================
+   BUNNY-WALK.CSS — Desktop bunny walk-in window
+   =================================================== */
+
+/* Transparent background for the floating window */
+.bunny-walk-root {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+/* Scene — bottom-right corner of the window */
+.bunny-walk-scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 8px;
+  margin-bottom: 4px;
+}
+
+/* ---- Speech bubble ---- */
+.bunny-walk-bubble {
+  background: rgba(250, 246, 239, 0.96);
+  border: 1.5px solid #d4c9b8;
+  border-radius: 10px;
+  padding: 6px 12px;
+  max-width: 180px;
+  text-align: center;
+  position: relative;
+  margin-bottom: 8px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.bunny-walk-bubble.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Bubble pointer (downward, toward the bunny) */
+.bunny-walk-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 7px 0 7px;
+  border-style: solid;
+  border-color: #d4c9b8 transparent transparent transparent;
+}
+
+.bunny-walk-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 7px 6px 0 6px;
+  border-style: solid;
+  border-color: rgba(250, 246, 239, 0.96) transparent transparent transparent;
+  z-index: 1;
+}
+
+.bunny-walk-bubble-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  color: #2c2825;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* ---- Bunny container ---- */
+.bunny-walk-bunny {
+  width: 80px;
+  height: 72px;
+  cursor: pointer;
+  position: relative;
+}
+
+.bunny-walk-bunny-inner {
+  display: block;
+  width: 80px;
+  height: 72px;
+}
+
+.bunny-walk-svg {
+  width: 80px;
+  height: 72px;
+  overflow: visible;
+}
+
+/* ---- Walk-in animation (translateX from right) ---- */
+.bunny-walk-bunny.walking-in {
+  animation: walkIn 1.5s ease-out forwards;
+}
+
+@keyframes walkIn {
+  0%   { transform: translateX(230px); }
+  100% { transform: translateX(0); }
+}
+
+/* ---- Walk-out animation (translateX to right) ---- */
+.bunny-walk-bunny.walking-out {
+  animation: walkOut 1.2s ease-in forwards;
+}
+
+@keyframes walkOut {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(230px); }
+}
+
+/* ---- Walking bounce (translateY, on inner element) ---- */
+.bunny-walk-bunny.walking-in .bunny-walk-bunny-inner,
+.bunny-walk-bunny.walking-out .bunny-walk-bunny-inner {
+  animation: walkBounce 0.3s ease-in-out infinite;
+}
+
+@keyframes walkBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* ---- Idle bobbing during talking phase ---- */
+.bunny-walk-bunny.talking .bunny-walk-bunny-inner {
+  animation: idleBob 1.2s ease-in-out infinite;
+}
+
+@keyframes idleBob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+/* ---- Ear sway (SVG group) ---- */
+.bunny-walk-ears {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: earSway 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes earSway {
+  from { transform: rotate(-4deg); }
+  to   { transform: rotate(4deg); }
+}
+
+/* Ears stop swaying during talking (just gentle idle) */
+.bunny-walk-bunny.talking .bunny-walk-ears {
+  animation: earIdle 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes earIdle {
+  from { transform: rotate(-1.5deg); }
+  to   { transform: rotate(1.5deg); }
+}
+
+/* Click feedback */
+.bunny-walk-bunny:active .bunny-walk-bunny-inner {
+  transform: scale(0.93);
+  transition: transform 0.08s ease;
+}

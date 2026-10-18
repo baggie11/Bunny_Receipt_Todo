@@ -23,9 +23,22 @@ export function getBunnyState(
     isEarly?: boolean;
     isBirthday?: boolean;
     hasRepeatedTasks?: boolean;
+    leftoverCount?: number;
   }
 ): BunnyStateResult {
   if (total === 0) {
+    const leftoverCount = options?.leftoverCount ?? 0;
+    if (leftoverCount > 0) {
+      return {
+        mood: 'tired',
+        percentage: 0,
+        text: leftoverCount === 1
+          ? "Yesterday we left 1 task unfinished."
+          : `Yesterday we left ${leftoverCount} tasks unfinished.`,
+        subtext: "That's okay. Want to carry them over?",
+        isCelebrating: false,
+      };
+    }
     return {
       mood: 'empty',
       percentage: 0,
